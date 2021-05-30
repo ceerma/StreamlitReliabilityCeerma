@@ -1,40 +1,13 @@
 server {
-<<<<<<< HEAD
-	root /home/diego/Web/reliabilityceerma;
-	index index.html index.htm index.nginx-debian.html;
-	server_name reliability.ceerma.com;
-=======
-
-
-	root /home/diego/Web/reliabilityceerma;
+	root /home/ubuntu/reliabilityceerma;
 
 	index index.html index.htm index.nginx-debian.html;
 
 	server_name reliability.ceerma.com;
-
->>>>>>> 57c210c87e4fce8e296b5123433b73ace4f4aedc
 
 	location / {
 		try_files $uri $uri/ =404;
 	} 
-
-	location /parametricmodelsplot {
-		proxy_pass         http://127.0.0.1:8501/parametricmodelsplot/;
-		proxy_set_header   Host      $host;
-		proxy_set_header   X-Real-IP $remote_addr;
-		proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
-		proxy_set_header   X-Forwarded-Proto $scheme;
-		proxy_buffering    off;
-		proxy_http_version 1.1;
-		# Also requires websocket:
-		proxy_set_header Upgrade $http_upgrade;
-		proxy_set_header Connection "upgrade";
-		proxy_read_timeout 86400;
-	}
-<<<<<<< HEAD
-=======
-
-
 # esto es opcional para habilitar streamlit con reverse proxy
 # requiere lanzar streamlite con baserl streamlit 
 location /parametricmodel/ {
@@ -50,14 +23,6 @@ location /parametricmodel/ {
 	proxy_set_header Connection "upgrade";
 	proxy_read_timeout 86400;
 }
-
-
-
-
-
-
-
->>>>>>> 57c210c87e4fce8e296b5123433b73ace4f4aedc
 }
 
 
