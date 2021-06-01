@@ -85,3 +85,4 @@ watchdog==2.1.2
 wcwidth==0.2.5
 webencodings==0.5.1
 widgetsnbextension==3.5.1
+plotly==4.14.3
