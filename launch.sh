@@ -8,3 +8,7 @@ source env/bin/activate
 # lanza el proceso con nohup para evitar que se muera al cerrar terminal
 # y manda a background
 nohup streamlit run --server.enableXsrfProtection=false --server.enableCORS false --server.baseUrlPath=parametricmodel parametricmodel.py
+
+nohup streamlit run --server.enableXsrfProtection=false --server.enableCORS false --server.baseUrlPath=parametricfitters fitter.py
+
+
