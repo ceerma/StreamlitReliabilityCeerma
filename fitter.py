@@ -212,31 +212,6 @@ if st.button("Fit distribution"):
         fit_up = Loglogistic_Distribution(alpha=new_fit.alpha_upper, beta=new_fit.beta_upper, gamma=new_fit.gamma_upper)
         fit_lw = Loglogistic_Distribution(alpha=new_fit.alpha_lower, beta=new_fit.beta_lower, gamma=new_fit.gamma_lower)
 
-    # properties_dist = st.empty()
-
-    # if distribution_name =="Beta_2P":
-    #     properties_dist.text("""
-    #     Mean: {}
-    #     Median: {}
-    #     Mode:  No mode exists unless Alpha and Beta are greater than 1.
-    #     Variance: {}
-    #     Standard Deviation: {}
-    #     Skewness: {} 
-    #     Kurtosis: {}
-    #     Excess Kurtosis: {} 
-    #     """.format(dist.mean,dist.median, dist.variance, dist.standard_deviation, dist.skewness, dist.kurtosis, dist.excess_kurtosis ) )
-    # else:
-    #     properties_dist.text("""
-    #     Mean: {}
-    #     Median: {}
-    #     Mode:  {}
-    #     Variance: {}
-    #     Standard Deviation: {}
-    #     Skewness: {} 
-    #     Kurtosis: {}
-    #     Excess Kurtosis: {} 
-    #     """.format(dist.mean,dist.median ,dist.mode, dist.variance, dist.standard_deviation, dist.skewness, dist.kurtosis, dist.excess_kurtosis ) )
-
     if distribution_name =="Beta_2P":
         properties_dist = {
         'Mean': dist.mean, 
