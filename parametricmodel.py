@@ -173,7 +173,7 @@ elif distribution_name =="Lognormal Distribution":
     var1_name, var2_name,var3_name = "mu","sigma", "gamma" 
     var1 = st.number_input("Location parameter (Mu)" )
     var2 = st.number_input("Scale parameter (Sigma)", min_value= float(np.finfo(float).eps), value=1.0)
-    var3 = st.number_input("Scale parameter (Gamma)" )
+    var3 = st.number_input("Location parameter (Gamma)" )
     dist_fun= Lognormal_Distribution
     equation = st.beta_expander("Equation Information")
     equation.latex(r''' \alpha = \text{Scale parameter } (-\infty  < \mu < \infty  )''' ) 
