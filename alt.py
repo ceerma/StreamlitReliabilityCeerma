@@ -14,6 +14,7 @@ Fit_Weibull_Dual_Exponential, Fit_Weibull_Power_Exponential, Fit_Weibull_Dual_Po
 Fit_Lognormal_Power, Fit_Lognormal_Dual_Exponential, Fit_Lognormal_Power_Exponential, Fit_Lognormal_Dual_Power, Fit_Normal_Exponential, \
 Fit_Normal_Eyring, Fit_Normal_Power, Fit_Normal_Dual_Exponential, Fit_Normal_Dual_Power, Fit_Exponential_Exponential, \
 Fit_Exponential_Eyring, Fit_Exponential_Power, Fit_Exponential_Dual_Exponential, Fit_Exponential_Power_Exponential, Fit_Exponential_Dual_Power
+import pickle
 
 st.set_page_config(page_title="Accelerated Life Testing",page_icon="📈",layout="wide", initial_sidebar_state="expanded")
 
@@ -56,6 +57,15 @@ updatemenus_log = [
     )
 ]
 
+def st_tonumlist(txt_input):
+    txt_input = txt_input.rsplit(sep=",")
+    num_list =[]
+    for i in txt_input:
+        try:
+            num_list.append(float(i))
+        except:
+            pass
+    return num_list
 
 single_stress_ALT_models_list = [
     "Weibull_Exponential",
@@ -107,6 +117,10 @@ df_show = {'Time': [10, 15, 8, 20, 21, 12, 13, 30, 5], \
     'Stress2': [100, 100, 100, 200, 200, 200, 300, 300, 300],}
 df_show = pd.DataFrame.from_dict(df_show)
 expander.write(df_show, width=50)
+expander.info('The use level stress parameter is optional. If single stress model, enter only one value. For example:')
+expander.write('10')
+expander.info('If dual stress model, enter two values separated by ",". For example: ')
+expander.write('10, 50')
 
 col2_1, col2_2 = st.beta_columns(2)
 uploaded_file = col2_1.file_uploader("Upload a XLSX file", \
@@ -124,11 +138,21 @@ if uploaded_file:
     cdata = df[df['Type'] == 'C']
     ctime = np.array(cdata.iloc[:,0])
     cstress_1 = np.array(cdata.iloc[:,2])
-    use_level = st.number_input("Use level stress (optional)", min_value=0, value=0)
+    use_level = st.text_input("Use level stress (optional)")
+    use_level = st_tonumlist(use_level)
     if len(df.columns) == 4:
         fstress_2 = np.array(fdata.iloc[:,3])
         cstress_2 = np.array(cdata.iloc[:,3])
         dual = True
+        if use_level:
+            if len(use_level) != 2:
+                st.error('Enter two use level stresses')
+    elif len(df.columns) == 3:
+        if use_level:
+            if len(use_level) > 1:
+                st.error('Enter one use level stress')
+            else:
+                use_level = use_level[0]        
     #     include = st.multiselect('Choose which distribution(s) you want to fit to your data', dual_stress_ALT_models_list)
     # else:
     #     include = st.multiselect('Choose which distribution(s) you want to fit to your data', single_stress_ALT_models_list)
@@ -568,39 +592,32 @@ if st.button("Fit ALT model"):
                     best_loglik = -res_Exponential_Power.loglik
                     best_model = res_Exponential_Power
                     best_model_name = 'Exponential_Power'
-            
-            st.write('## Results of all fitted ALT models')
-            # results = pd.DataFrame.from_dict(results)
-            st.write(results)
 
-            st.write('## Results of the best fitted ALT model')
-            st.write(best_model_name)
-            st.write(best_model.results)
+            # # Recreate plt figure in plotly
+            # lines = best_model.probability_plot
 
-            lines = best_model.probability_plot
+            # fig = go.Figure()
+            # x_min,x_max = lines.get_xlim()
+            # y_min,y_max = lines.get_ylim()
 
-            fig = go.Figure()
-            x_min,x_max = lines.get_xlim()
-            y_min,y_max = lines.get_ylim()
+            # for line in lines.get_lines():
 
-            for line in lines.get_lines():
+            #     if line.get_linestyle() == '--':
+            #         dash = 'dash'
+            #     else:
+            #         dash = None
 
-                if line.get_linestyle() == '--':
-                    dash = 'dash'
-                else:
-                    dash = None
+            #     if line.get_label() in list(set(map(str, fstress_1))):
+            #         label = line.get_label()
+            #     else:
+            #         label = label
 
-                if line.get_label() in list(set(map(str, fstress_1))):
-                    label = line.get_label()
-                else:
-                    label = label
+            #     fig.add_trace(go.Scatter(x=line.get_xdata(), y=line.get_ydata(), name = label,  line=dict(color = line.get_color(), dash=dash), visible = True))
 
-                fig.add_trace(go.Scatter(x=line.get_xdata(), y=line.get_ydata(), name = label,  line=dict(color = line.get_color(), dash=dash), visible = True))
-
-            fig.update_xaxes(range=[x_min, x_max])
-            fig.update_yaxes(range=[y_min, y_max])
-            fig.update_layout(width = 600, height = 600, title = 'Probability plot', yaxis=dict(tickformat='.2e'), xaxis=dict(tickformat='.2e'), updatemenus=updatemenus_log, title_text='Probability plot') #- {} - a = {}, b = {}, beta = {}'.format('Weibull Exponential', results.a, results.b, results.beta))
-            st.plotly_chart(fig)
+            # fig.update_xaxes(range=[x_min, x_max])
+            # fig.update_yaxes(range=[y_min, y_max])
+            # fig.update_layout(width = 600, height = 600, title = 'Probability plot', yaxis=dict(tickformat='.2e'), xaxis=dict(tickformat='.2e'), updatemenus=updatemenus_log, title_text='Probability plot') #- {} - a = {}, b = {}, beta = {}'.format('Weibull Exponential', results.a, results.b, results.beta))
+            # st.plotly_chart(fig)
 
         else:
             # create empty dataframe to append results
@@ -994,13 +1011,20 @@ if st.button("Fit ALT model"):
                     best_model = res
                     best_model_name = 'Exponential_Dual_Power'
 
-            st.write('## Results of all fitted ALT models')
-            # results = pd.DataFrame.from_dict(results)
-            st.write(results)
+        st.write('## Results of all fitted ALT models')
+        # results = pd.DataFrame.from_dict(results)
+        st.write(results)
 
-            st.write('## Results of the best fitted ALT model')
-            st.write(best_model_name)
-            st.write(best_model.results)
+        st.write('## Results of the best fitted ALT model')
+        st.write(best_model_name)
+        st.write(best_model.results)
+
+        probability_plot = best_model.probability_plot.figure
+        life_stress_plot = best_model.life_stress_plot.figure
+        col1, col2 = st.beta_columns(2)
+        col1.pyplot(probability_plot)
+        col2.pyplot(life_stress_plot)
+
     else:
         st.error('Please, choose at least one model to fit.')
         st.stop()
