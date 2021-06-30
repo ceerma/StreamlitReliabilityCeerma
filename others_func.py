@@ -74,7 +74,7 @@ st.write("Strentgh")
 col5, col6, col7, col8 = st.beta_columns([3, 1,1,1 ])
 
 dist_stress = col1.selectbox( 'Select the distribution for the stress.', ('Normal Distribution','Exponential Distribution',
-  'Beta Distribution', 'Gumbel Distribution' ,'Weibull Distribution', 'Lognormal Distribution',
+  'Gumbel Distribution' ,'Weibull Distribution', 'Lognormal Distribution',
  'Gamma Distribution','Loglogistic Distribution'))
 i=1
 if dist_stress == "Exponential Distribution":
@@ -119,8 +119,8 @@ elif dist_stress =="Loglogistic Distribution":
     stress_fun = Loglogistic_Distribution(stress_var1,stress_var2,stress_var3)
 
 
-dist_strentgh = col5.selectbox( 'Select the distribution for the strentgh.', ('Normal Distribution', 'Exponential Distribution',
-  'Beta Distribution', 'Gumbel Distribution' ,'Weibull Distribution', 'Lognormal Distribution',
+dist_strentgh = col5.selectbox( 'Select the distribution for the strentgh.', ('Normal Distribution', 'Exponential Distribution'
+    , 'Gumbel Distribution' ,'Weibull Distribution', 'Lognormal Distribution',
  'Gamma Distribution','Loglogistic Distribution'))
 i=2
 if dist_strentgh == "Exponential Distribution":
