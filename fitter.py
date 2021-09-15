@@ -64,7 +64,7 @@ updatemenus_log = [
     )
 ]
 
-
+colors = px.colors.qualitative.Set1
 
 
 
@@ -142,6 +142,10 @@ if mod == "Parametric":
 else:
     include = st.selectbox('Choose which distribution you want to fit to your data', ['Kaplan-Meier', 'Nelson-Aalen', 'Rank Adjustment'])
     ci = st.number_input('CI', min_value=0., max_value=1., value=0.9)
+    par = st.checkbox('Do you want to compare the results with the fit to a parametric distribution?')
+    if par == True:
+        metric = st.radio('Choose a goodness of fit criteria', ('BIC', 'AICc', 'AD', 'Log-likelihood'))
+        method = st.radio('Choose the method to fit the distribution', ('MLE', 'LS', 'RRX', 'RRY'))
     expander = st.beta_expander("Plot parameter")
     points_quality = expander.number_input('Number of points to plot', min_value=5,value = 1000, max_value = 100000 )
 st.write(" ")
@@ -264,17 +268,18 @@ if st.button("Fit distribution"):
         y_CHF = dist.CHF(xvals=x)
         x_f, y_f = plotting_positions(failures=fdata, right_censored=cdata)
         fig = go.Figure()
-        fig.add_trace(go.Histogram(x=fdata, histnorm='probability density', name = 'Dados originais (falha)', marker=dict(color = 'rgba(0, 255, 0, 0.9)'), opacity=0.3))
-        fig.add_trace(go.Scatter(x=x, y=y_PDF, mode='lines', name = 'PDF',  marker=dict(color = 'rgba(0, 255, 0, 0.9)'), visible = True))
-        fig.add_trace(go.Scatter(x=x_f, y=y_f, mode='markers', name = 'Failure data',  marker=dict(color = 'rgba(255, 0, 0, 0.9)'), visible = 'legendonly'))
-        fig.add_trace(go.Scatter(x=x, y=y_CDF, mode='lines', name = 'CDF',  marker=dict(color = 'rgba(255, 0, 0, 0.9)'), visible = 'legendonly'))
-        fig.add_trace(go.Scatter(x=x, y=y_SF, mode='lines', name = 'SF',  marker=dict(color = 'rgba(255, 223, 118, 0.9)'), visible = 'legendonly'))
+        fig.add_trace(go.Histogram(x=fdata, histnorm='probability density', name = 'Dados originais (falha)', marker=dict(color = colors[0]), opacity=0.3))
+        fig.add_trace(go.Scatter(x=x, y=y_PDF, mode='lines', name = 'PDF',  marker=dict(color = colors[0]), visible = True))
         
-        fig.add_trace(go.Scatter(name='SF Upper Bound', x=upper_est, y=y_teste[0:len(upper_est)+1], mode='lines', marker=dict(color="#444"), line=dict(width=0), showlegend=False, visible = 'legendonly'))
-        fig.add_trace(go.Scatter(name='SF Lower Bound',x=lower_est, y=y_teste[0:len(lower_est)+1], marker=dict(color="#444"), line=dict(width=0),	mode='lines', fillcolor='rgba(255, 20, 147, 0.2)', showlegend=False, visible = 'legendonly'))
-        fig.add_trace(go.Scatter(name='SF CI', x=upper_est, y=y_teste[0:len(upper_est)+1], marker=dict(color="#444"), line=dict(width=0), mode='lines', fillcolor='rgba(255, 255, 0, 0.2)', fill='tonexty', visible='legendonly'))
-        fig.add_trace(go.Scatter(x=x, y=y_HF, mode='lines', name = 'HF',  marker=dict(color = 'rgba(0, 0, 255, 0.9)'), visible = 'legendonly'))
-        fig.add_trace(go.Scatter(x=x, y=y_CHF, mode='lines', name = 'CHF',  marker=dict(color = 'rgba(135, 45, 54, 0.9)'), visible = 'legendonly'))
+        fig.add_trace(go.Scatter(x=x_f, y=y_f, mode='markers', name = 'Failure data',  marker=dict(color = colors[1]), visible = 'legendonly'))
+        fig.add_trace(go.Scatter(x=x, y=y_CDF, mode='lines', name = 'CDF',  marker=dict(color = colors[1]), visible = 'legendonly'))
+        
+        fig.add_trace(go.Scatter(x=upper_est, y=y_teste[0:len(upper_est)+1], mode='lines',  marker=dict(color = colors[2]), visible = 'legendonly', line=dict(width=0), name= 'SF upper'))
+        fig.add_trace(go.Scatter(x=lower_est, y=y_teste[0:len(lower_est)+1], mode='lines',  marker=dict(color = colors[2]), visible = 'legendonly', fill='tonexty', line=dict(width=0), name= 'SF lower'))
+        fig.add_trace(go.Scatter(x=x, y=y_SF, mode='lines', name = 'SF',  marker=dict(color = colors[2]), visible = 'legendonly'))
+    
+        fig.add_trace(go.Scatter(x=x, y=y_HF, mode='lines', name = 'HF',  marker=dict(color = colors[3]), visible = 'legendonly'))
+        fig.add_trace(go.Scatter(x=x, y=y_CHF, mode='lines', name = 'CHF',  marker=dict(color = colors[4]), visible = 'legendonly'))
         
         
 
@@ -301,9 +306,11 @@ if st.button("Fit distribution"):
             dist = NelsonAalen(failures=fdata, right_censored=cdata, show_plot=False, print_results=False, CI=ci)   
         elif include == 'Rank Adjustment':
             dist = RankAdjustment(failures=fdata, right_censored=cdata, show_plot=False, print_results=False, CI=ci)
-        
-        x_min,x_max = plt.gca().get_xlim()
-        x = np.linspace(x_min,x_max,points_quality)
+
+        # x_min,x_max = plt.gca().get_xlim()
+        # x = np.linspace(x_min,x_max,points_quality)
+        x = dist.xvals
+
         y_CDF = dist.CDF
         y_CDF_up = dist.CDF_upper
         y_CDF_lw = dist.CDF_lower
@@ -313,20 +320,35 @@ if st.button("Fit distribution"):
         y_CHF = dist.CHF
         y_CHF_up = dist.CHF_upper
         y_CHF_lw = dist.CHF_lower
-        x_f, y_f = plotting_positions(failures=fdata, right_censored=cdata)
+
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=x, y=y_CDF_up, mode='lines',  marker=dict(color = 'rgba(255, 0, 0, 0.9)'), visible = True, showlegend=False))
-        fig.add_trace(go.Scatter(x=x, y=y_CDF_lw, mode='lines',  marker=dict(color = 'rgba(255, 0, 0, 0.9)'), visible = True, fill='tonexty', showlegend=False))
-        fig.add_trace(go.Scatter(x=x, y=y_CDF, mode='lines', name = 'CDF',  marker=dict(color = 'rgba(255, 0, 0, 0.9)'), visible = True))
-
-        fig.add_trace(go.Scatter(x=x, y=y_SF_up, mode='lines',  marker=dict(color = 'rgba(255, 223, 118, 0.9)'), visible = True, showlegend=False))
-        fig.add_trace(go.Scatter(x=x, y=y_SF_lw, mode='lines',  marker=dict(color = 'rgba(255, 223, 118, 0.9)'), visible = True, fill='tonexty', showlegend=False))
-        fig.add_trace(go.Scatter(x=x, y=y_SF, mode='lines', name = 'SF',  marker=dict(color = 'rgba(255, 223, 118, 0.9)'), visible = True))
-
-        fig.add_trace(go.Scatter(x=x, y=y_CHF_up, mode='lines',  marker=dict(color = 'rgba(135, 45, 54, 0.9)'), visible = True, showlegend=False))
-        fig.add_trace(go.Scatter(x=x, y=y_CHF_lw, mode='lines',  marker=dict(color = 'rgba(135, 45, 54, 0.9)'), visible = True, fill='tonexty', showlegend=False))
-        fig.add_trace(go.Scatter(x=x, y=y_CHF, mode='lines', name = 'CHF',  marker=dict(color = 'rgba(135, 45, 54, 0.9)'), visible = True))          
+        fig.add_trace(go.Scatter(x=x, y=y_CDF_up, mode='lines',  marker=dict(color = colors[0]), visible = True, showlegend=False, line=dict(width=0)))
+        fig.add_trace(go.Scatter(x=x, y=y_CDF_lw, mode='lines',  marker=dict(color = colors[0]), visible = True, showlegend=False, fill='tonexty', line=dict(width=0)))
+        fig.add_trace(go.Scatter(x=x, y=y_CDF, mode='lines', name = 'CDF',  marker=dict(color = colors[0]), visible = True))
         
+
+        fig.add_trace(go.Scatter(x=x, y=y_SF_up, mode='lines',  marker=dict(color = colors[1]), visible = True, showlegend=False, line=dict(width=0)))
+        fig.add_trace(go.Scatter(x=x, y=y_SF_lw, mode='lines',  marker=dict(color = colors[1]), visible = True, fill='tonexty', showlegend=False, line=dict(width=0)))
+        fig.add_trace(go.Scatter(x=x, y=y_SF, mode='lines', name = 'SF',  marker=dict(color = colors[1]), visible = True))
+        
+
+        fig.add_trace(go.Scatter(x=x, y=y_CHF_up, mode='lines',  marker=dict(color = colors[2]), visible = True, showlegend=False, line=dict(width=0)))
+        fig.add_trace(go.Scatter(x=x, y=y_CHF_lw, mode='lines',  marker=dict(color = colors[2]), visible = True, fill='tonexty', showlegend=False, line=dict(width=0)))   
+        fig.add_trace(go.Scatter(x=x, y=y_CHF, mode='lines', name = 'CHF',  marker=dict(color = colors[2]), visible = True))
+               
+        
+        #Parametric
+        if par == True:
+            results = Fit_Everything(failures=fdata, right_censored=cdata, sort_by=metric, print_results=False,\
+            show_histogram_plot=False, show_PP_plot=False, show_probability_plot=False, method=method)
+            y_SF_par = results.best_distribution.SF(xvals=x)
+            y_CDF_par = results.best_distribution.CDF(xvals=x)
+            y_CHF_par = results.best_distribution.CHF(xvals=x)
+            fig.add_trace(go.Scatter(x=x, y=y_CDF_par, mode='lines', name = 'CDF parametric - {}'.format(results.best_distribution_name),  marker=dict(color = colors[0]), visible = True, line=dict(dash='dot')))
+            fig.add_trace(go.Scatter(x=x, y=y_SF_par, mode='lines', name = 'SF parametric - {}'.format(results.best_distribution_name),  marker=dict(color = colors[1]), visible = True, line=dict(dash='dot')))
+            fig.add_trace(go.Scatter(x=x, y=y_CHF_par, mode='lines', name = 'CHF parametric - {}'.format(results.best_distribution_name),  marker=dict(color = colors[2]), visible = True, line=dict(dash='dot'))) 
+
+
         fig.update_layout(width = 1900, height = 600, title = 'Dados analisados', yaxis=dict(tickformat='.2e'), xaxis=dict(tickformat='.2e'), updatemenus=updatemenus_log,title_text='Non-parametric Model - {}'.format(include)) #size of figure
         fig.update_xaxes(title = 'Time')
         fig.update_yaxes(title = 'Probability density')			
