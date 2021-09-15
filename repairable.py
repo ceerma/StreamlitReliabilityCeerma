@@ -1124,65 +1124,147 @@ updatemenus_log = [
 
 st.title("Repairable Systems")
 
+
 mod = st.selectbox("Which analysis would you like to perform?",("Reliability Growth", "Optimal replacement time", "Rate of occurrence of failures (ROCOF)", "Mean cumulative function (MCF)"))
 # mod = "Mean cumulative function (MCF)"
 if mod == 'Optimal replacement time':
     # replacement
+    helpbutton = st.beta_expander("Help")
+    helpbutton.write("This function calculates the cost per unit time to determine how cost varies with replacement time. \
+                    The cost model may be HPP (as good as new replacement, with Restoration Factor equal to 0) \
+                    or NHPP (as good as old replacement, with the Restoration Factor equal to 1). \
+                    Default is HPP, but this can be controled with the parameter Restorarion Factor.  ")
+    helpbutton.info("Costs in the above context should include all associated costs of Preventive Maintenance and \
+                    Corective Maintenance. These are not just the costs associated with parts and labor but may also \
+                    include other costs such as: system downtime, loss of production output, and customer satisfaction.")
     pm = st.number_input(label='Preventative Maintenance Cost', min_value=0, format='%d')
     cm = st.number_input(label='Corrective Maintenance Cost', min_value=0, format='%d')
     alpha = st.number_input(label='Scale Parameter of the Weibull Distribution', min_value=0.)
     beta = st.number_input(label='Shape Parameter of the Weibull Distribution', min_value=1.)
     q = st.radio(label='Restoration Factor.',options=np.array([0,1]))
-else:
-    if mod == "Mean cumulative function (MCF)":
-        expander = st.beta_expander("Data format")
-        expander.info('Upload an excel file that contains the failure interarrival times of each equipment that should be considered in the analysis. Note: the last interval will be considered as censored.')
-        df = {'Eq1': [10, 15, 8, 20, 21, 12, 13, 30, 5], 'Eq2': [10, 15, 8, 20, 21, 12, 13, 30, 5]}
-        df = pd.DataFrame.from_dict(df)
-        expander.write(df, width=50)  
-        
-        col2_1, col2_2 = st.beta_columns(2)
-        uploaded_file = col2_1.file_uploader("Upload a XLSX file", \
-            type="xlsx", accept_multiple_files=False)
-        if uploaded_file:
-            aux = pd.read_excel(uploaded_file)
-            col2_2.dataframe(aux)
-            data = []
-            for col in aux.columns:
-                cleanedList = [x for x in aux[col].to_list() if str(x) != 'nan']
-                data.append(cleanedList)
-        
-        parametric = st.radio('Should we assume that repairs are identical?',('No', 'Yes'))
-        ci = st.number_input('CI', min_value=0., max_value=1., value=0.9)
-        
-    else:
-        expander = st.beta_expander("Data format")
-        expander.info('Upload an excel file that contains one column with failure interarrival times ("Time").')
-        df = {'Time': [10, 15, 8, 20, 21, 12, 13, 30, 5]}
-        df = pd.DataFrame.from_dict(df)
-        expander.write(df, width=50)
-        
-        col2_1, col2_2 = st.beta_columns(2)
-        uploaded_file = col2_1.file_uploader("Upload a XLSX file", \
-            type="xlsx", accept_multiple_files=False)
-        if uploaded_file:
-            data = pd.read_excel(uploaded_file)
-            if df.shape[1] == 1:
-                col2_2.dataframe(data)
-                for col in data.columns:
-                    times = np.cumsum(data[col].to_numpy())
-            else:
-                st.warning('Check the data format.')
 
-        if mod == 'Reliability Growth':
-            # Reliability growth
-            mtbf = st.number_input(label='Target MTBF',min_value=0, format='%d')
-        if mod == 'ROCOF':
-            # ROCOF
-            censored = st.number_input(label='Censored time (optional)', min_value=0, format='%d')
-            if censored == 0:
-                censored = None
-            ci = st.number_input('CI', min_value=0., max_value=1., value=0.9)
+if mod == "Mean cumulative function (MCF)":
+    helpbutton = st.beta_expander("Help")
+    helpbutton.write("The Mean Cumulative Function (MCF) is a cumulative history function that \
+                    shows the cumulative number of recurrences of an event, such as repairs over \
+                    time. In the context of repairs over time, the value of the MCF can be \
+                    thought of as the average number of repairs that each system will have \
+                    undergone after a certain time.")
+    helpbutton.write("If repairs are assumed to be identical, than the parametric MCF is estimated. \
+                    If repairs are assumed not to be identical, than the non-parametric MCF is calculated.")
+    helpbutton.write("The non-parametric estimate of the MCF provides both the estimate of the MCF \
+                    and the one-sided confidence bounds at a particular time.")
+    helpbutton.write("The estimates of the parametric MCF are obtained using first the non-parametric MCF \
+                    to obtain the points for the plot. From these points, a Non-Homogeneous Poisson Process (NHPP) is fitted \
+                    considering the equation below.")
+    helpbutton.latex(r''' MCF(t) = \frac{t^\beta}{\alpha^\beta}''' )
+    helpbutton.write("The purpose of fitting a parametric model is to obtain the shape parameter ($\\beta$)\
+                    which indicates the long term health of the system. If the MCF is concave down ($\\beta$<1) \
+                    then the system is improving. A straight line ($\\beta$=1) indicates it is staying the same.\
+                    Concave up ($\\beta$>1) shows the system is worsening as repairs are required more frequently as time progresses.")
+                    
+    # The shape of the MCF is a key indicator that shows whether the systems are
+    # improving, worsening, or staying the same over time. If the MCF is concave
+    # down (appearing to level out) then the system is improving. A straight line
+    # (constant increase) indicates it is staying the same. Concave up (getting
+    # steeper) shows the system is worsening as repairs are required more
+    # frequently as time progresses.")
+    # helpbutton.info("If repairs are assumed to be identical, than the parametric MCF is estimated. \
+    #                 If repairs are assumed not to be identical, than the non-parametric MCF is calculated.")
+    
+    expander = st.beta_expander("Data format")
+    expander.info('Upload an excel file that contains the failure interarrival times of each equipment that should be considered in the analysis. Note: the last interval will be considered as censored.')
+    df = {'Eq1': [10, 15, 8, 20, 21, 12, 13, 30, 5], 'Eq2': [10, 15, 8, 20, 21, 12, 13, 30, 5]}
+    df = pd.DataFrame.from_dict(df)
+    expander.write(df, width=50)  
+    
+    col2_1, col2_2 = st.beta_columns(2)
+    uploaded_file = col2_1.file_uploader("Upload a XLSX file", \
+        type="xlsx", accept_multiple_files=False)
+    if uploaded_file:
+        aux = pd.read_excel(uploaded_file)
+        col2_2.dataframe(aux)
+        data = []
+        for col in aux.columns:
+            cleanedList = [x for x in aux[col].to_list() if str(x) != 'nan']
+            data.append(cleanedList)
+    
+    parametric = st.radio('Should we assume that repairs are identical?',('No', 'Yes'))
+    ci = st.number_input('CI', min_value=0., max_value=1., value=0.9)
+
+if mod == 'Reliability Growth':
+    # Reliability growth
+    helpbutton = st.beta_expander("Help")
+
+    helpbutton.write("Uses the Duane method to find the instantaneous MTBF and produce a reliability \
+                    growth plot. The instantaneous MTBF is given by the equation below.")
+    helpbutton.latex(r'''MTBF = \frac{t^{1-\beta}}{\lambda \beta}''')
+    helpbutton.write("The estimation of the parameters $\lambda$ and $\\beta$ is obtained as follows. Firstly, \
+                    we need to calculate the Cumulative Mean Time Between Failures (CMTBF) as the equation \
+                    below, where *t* is the time when the failure occured and *N* is the sequence of the failure.")
+    helpbutton.latex(r''' CMTBF = \frac{t}{N}''' )
+    helpbutton.write("By plotting $\ln(t)$ vs $\ln(t/N)$ we obtain a straight line which is used get the \
+                    parameters $\lambda$ and $\\beta$.")
+    helpbutton.info("Note that the maximum achieveable reliability is locked in by design, so reliability \
+                    growth above the design reliability is only possible through design changes.")
+
+    expander = st.beta_expander("Data format")
+    expander.info('Upload an excel file that contains one column with failure interarrival times ("Time").')
+    df = {'Time': [10, 15, 8, 20, 21, 12, 13, 30, 5]}
+    df = pd.DataFrame.from_dict(df)
+    expander.write(df, width=50)
+
+    col2_1, col2_2 = st.beta_columns(2)
+    uploaded_file = col2_1.file_uploader("Upload a XLSX file", \
+        type="xlsx", accept_multiple_files=False)
+    if uploaded_file:
+        data = pd.read_excel(uploaded_file)
+        if df.shape[1] == 1:
+            col2_2.dataframe(data)
+            for col in data.columns:
+                times = np.cumsum(data[col].to_numpy())
+        else:
+            st.warning('Check the data format.')
+
+    mtbf = st.number_input(label='Target MTBF',min_value=0, format='%d')
+if mod == 'Rate of occurrence of failures (ROCOF)':
+    # ROCOF
+    helpbutton = st.beta_expander("Help")
+    helpbutton.write("Rate of occurrence of failures (ROCOF) is used to model the trend \
+                    (constant, increasing, decreasing) in the failure interarrival times. \
+                    The ROCOF is only calculated if the trend is constant. If trend is not \
+                    constant then ROCOF changes over time in accordance with the equation below \
+                    and the result only poits whether it is increasing or decreasing. \
+                    First, it is necessary to conduct a statistical test to determine if \
+                    there is a statistically significant trend, and if there is a trend we \
+                    can then model that trend, by estimating the parameters $\\beta$ and $\lambda$, \
+                    using a Power Law NHPP.")
+    helpbutton.latex(r''' ROCOF(t) = \lambda \beta {t}^{\beta -1}''' )
+    helpbutton.info("The statistical test is the Laplace test which compares the \
+                    Laplace test statistic (*U*) with the z value (*z_crit*) from the standard Normal Distribution.")
+    
+    expander = st.beta_expander("Data format")
+    expander.info('Upload an excel file that contains one column with failure interarrival times ("Time").')
+    df = {'Time': [10, 15, 8, 20, 21, 12, 13, 30, 5]}
+    df = pd.DataFrame.from_dict(df)
+    expander.write(df, width=50)
+
+    col2_1, col2_2 = st.beta_columns(2)
+    uploaded_file = col2_1.file_uploader("Upload a XLSX file", \
+        type="xlsx", accept_multiple_files=False)
+    if uploaded_file:
+        data = pd.read_excel(uploaded_file)
+        if df.shape[1] == 1:
+            col2_2.dataframe(data)
+            for col in data.columns:
+                times = np.cumsum(data[col].to_numpy())
+        else:
+            st.warning('Check the data format.')
+    
+    censored = st.number_input(label='Censored time (optional)', min_value=0, format='%d')
+    if censored == 0:
+        censored = None
+    ci = st.number_input('CI', min_value=0., max_value=1., value=0.9)
 
 
 
@@ -1199,5 +1281,4 @@ if st.button("Run"):
             MCF_parametric(data=data, CI=ci)
         else:
             MCF_nonparametric(data=data, CI=ci)
-        
 
