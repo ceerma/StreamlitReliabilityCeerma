@@ -73,7 +73,7 @@ def show():
     st.title("Fit distribution")
     st.write("In this module, you can provide your data (complete or incomplete) and fit the most common parametric probability distributions in reliability and also some non-parametric models.")
 
-    # with st.beta_expander(label='Help'):
+    # with st.expander(label='Help'):
     #     st.write('When using this module, please take into consideration the following points:')
     #     st.write('- Distributions can be fitted to both complete and incomplete (right censored) data, you just need to specify the as failures or right_censored data')
     #     st.write('- You must have at least as many failures as there are distribution parameters or the fit would be under-constrained.')
@@ -83,7 +83,7 @@ def show():
     #     st.write('- The goodness of fit criterions are available as AICc (Akaike Information Criterion corrected), BIC (Bayesian Information Criterion), AD (Anderson-Darling), and Log-likelihood (log-likelihood)')
     #     st.write('- The methods available to fit the distribution are: ‘MLE’ (maximum likelihood estimation), ‘LS’ (least squares estimation), ‘RRX’ (Rank regression on X), or ‘RRY’ (Rank regression on Y). LS will perform both RRX and RRY and return the better one.')
 
-    expander = st.beta_expander("Data format")
+    expander = st.expander("Data format")
     expander.info('Upload an excel file thar contains the following columns: failure or right-censored time ("Time"), and \
         the time type, if failure or right censored ("Type").')
     df = {'Time': [10, 15, 8, 20, 21, 12, 13, 30, 5], \
@@ -91,7 +91,7 @@ def show():
     df = pd.DataFrame.from_dict(df)
     expander.write(df, width=50)
 
-    col2_1, col2_2 = st.beta_columns(2)
+    col2_1, col2_2 = st.columns(2)
     uploaded_file = col2_1.file_uploader("Upload a XLSX file", \
         type="xlsx", accept_multiple_files=False)
     if uploaded_file:
@@ -137,7 +137,7 @@ def show():
             if dis == 'Loglogistic Distribution':
                 exc.extend(['Loglogistic_2P', 'Loglogistic_3P'])
 
-        expander = st.beta_expander("Plot parameter")
+        expander = st.expander("Plot parameter")
         points_quality = expander.number_input('Number of points to plot', min_value=5,value = 1000, max_value = 100000 )
         show_variable = expander.checkbox("Show distribution properties.", value=True, key=None)
     else:
@@ -147,7 +147,7 @@ def show():
         if par == True:
             metric = st.radio('Choose a goodness of fit criteria', ('BIC', 'AICc', 'AD', 'Log-likelihood'))
             method = st.radio('Choose the method to fit the distribution', ('MLE', 'LS', 'RRX', 'RRY'))
-        expander = st.beta_expander("Plot parameter")
+        expander = st.expander("Plot parameter")
         points_quality = expander.number_input('Number of points to plot', min_value=5,value = 1000, max_value = 100000 )
     st.write(" ")
 

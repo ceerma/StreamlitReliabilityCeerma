@@ -5,10 +5,21 @@ from PIL import Image
 image_ufpe = Image.open('./src/logo.png')
 image_pip = Image.open('./src/logopip.png')
 
+st.set_page_config(page_title="Reliability",page_icon="📈",layout="wide", initial_sidebar_state="expanded")
+
 st.sidebar.image(image_ufpe, caption='UFPE - CEERMA')
 
 st.sidebar.image(image_pip)#, caption='UFPE - CEERMA')
 
+hide_streamlit_style = """
+<style>
+#MainMenu {visibility: hidden;}
+#ReportStatus {visibility: hidden;}
+
+</style>
+
+"""
+st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
 
 ## First option
 # PARAMETRIC MODELS
@@ -35,7 +46,7 @@ if first_menu == "Parametrics and Non-Parametrics Models":
         show_parametricmix.show()
     if add_selectbox == "Non-Parametric model":
         show_comingsoon.show()
-    if add_selectbox == "Ftter":
+    if add_selectbox == "Fitter":
         show_fitter.show()
 
 
