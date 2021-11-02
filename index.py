@@ -1,6 +1,6 @@
 import streamlit as st
 
-import show_parametricmodel , show_parametricmix, show_otherfunc,show_comingsoon, show_repairable, show_alt, show_fitter
+import show_parametricmodel , show_parametricmix, show_otherfunc,show_comingsoon, show_repairable, show_alt, show_fitter, show_reliabilitytest
 from PIL import Image
 image_ufpe = Image.open('./src/logo.png')
 image_pip = Image.open('./src/logopip.png')
@@ -29,7 +29,7 @@ were used to carry out the project.""")
 
 first_menu = st.sidebar.selectbox(
     "Which module do you want to use?",
-    ("Select a module","Parametrics and Non-Parametrics Models", "Accelerated life testing", "Repairable Systems", "Other Functions")
+    ("Select a module","Parametrics and Non-Parametrics Models", "Accelerated life testing", "Repairable Systems","Reliability Testing", "Other Functions")
 )
 
 if first_menu == "Parametrics and Non-Parametrics Models":
@@ -53,7 +53,7 @@ if first_menu == "Parametrics and Non-Parametrics Models":
 if first_menu == "Accelerated life testing":
     add_selectbox = st.sidebar.selectbox(
         "Which submodule do you want to use?",
-        ("Select a submodule", "Accelerated life testing")
+        (["Accelerated life testing"])
     )
 
     if add_selectbox == "Select a module":
@@ -65,13 +65,25 @@ if first_menu == "Accelerated life testing":
 if first_menu == "Repairable Systems":
     add_selectbox = st.sidebar.selectbox(
         "Which submodule do you want to use?",
-        ("Select a submodule", "Repairable Systems")
+        (["Repairable Systems"])
     )
 
     if add_selectbox == "Select a module":
         pass
     if add_selectbox == "Repairable Systems":
         show_repairable.show()
+
+        
+if first_menu == "Reliability Testing":
+    add_selectbox = st.sidebar.selectbox(
+        "Which submodule do you want to use?",
+        (["Reliability Testing"])
+    )
+
+    if add_selectbox == "Select a module":
+        pass
+    if add_selectbox == "Reliability Testing":
+        show_reliabilitytest.show()
 
 
 if first_menu == "Other Functions":
